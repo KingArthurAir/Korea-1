@@ -437,10 +437,13 @@
             });
         }
 
-        // 随机间隔计数器
+        // 随机间隔计数器 - 带上限/下限
         function initializeCounters() {
             const STORAGE_KEY_ONLINE = 'counter_online';
             const STORAGE_KEY_REMAINING = 'counter_remaining';
+            
+            const MAX_ONLINE = 300;   // 在线人数上限
+            const MIN_REMAINING = 5;  // 剩余名额下限
             
             const onlineCountEl = document.getElementById("onlineCount");
             const remainingSpots1 = document.getElementById("remainingSpots");
@@ -465,32 +468,38 @@
             if (remainingSpots1) remainingSpots1.textContent = remainingCount + "/50";
             if (remainingSpots2) remainingSpots2.textContent = remainingCount + "/50";
             
-            // 随机秒数函数 (3-8秒之间随机)
+            // 随机秒数函数 (3-9秒之间随机)
             function getRandomInterval() {
                 return Math.floor(Math.random() * 6000) + 3000; // 3000-9000ms
             }
             
-            // 在线人数 - 随机间隔更新
+            // 在线人数 - 随机间隔更新，上限300
             function scheduleOnlineUpdate() {
                 setTimeout(() => {
-                    onlineCount++;
-                    if (onlineCountEl) onlineCountEl.textContent = onlineCount;
-                    localStorage.setItem(STORAGE_KEY_ONLINE, onlineCount);
-                    scheduleOnlineUpdate(); // 再次调度
+                    if (onlineCount < MAX_ONLINE) {
+                        onlineCount++;
+                        if (onlineCountEl) onlineCountEl.textContent = onlineCount;
+                        localStorage.setItem(STORAGE_KEY_ONLINE, onlineCount);
+                    }
+                    if (onlineCount < MAX_ONLINE) {
+                        scheduleOnlineUpdate(); // 继续调度
+                    }
                 }, getRandomInterval());
             }
             scheduleOnlineUpdate();
             
-            // 剩余名额 - 随机间隔更新
+            // 剩余名额 - 随机间隔更新，下限5
             function scheduleRemainingUpdate() {
                 setTimeout(() => {
-                    if (remainingCount > 0) {
+                    if (remainingCount > MIN_REMAINING) {
                         remainingCount--;
                         if (remainingSpots1) remainingSpots1.textContent = remainingCount + "/50";
                         if (remainingSpots2) remainingSpots2.textContent = remainingCount + "/50";
                         localStorage.setItem(STORAGE_KEY_REMAINING, remainingCount);
                     }
-                    scheduleRemainingUpdate(); // 再次调度
+                    if (remainingCount > MIN_REMAINING) {
+                        scheduleRemainingUpdate(); // 继续调度
+                    }
                 }, getRandomInterval());
             }
             scheduleRemainingUpdate();
