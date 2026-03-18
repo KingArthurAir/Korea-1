@@ -400,6 +400,7 @@
     </div>
 
 
+
     <script>
         let errorTimer = null;
         const checkboxes = document.querySelectorAll('input[name="options"]');
@@ -436,40 +437,53 @@
             });
         }
 
-        // Count up/down functionality
+        // 持久化计数器 - 使用 localStorage
         function initializeCounters() {
-            // Online count: start at 150, increment by 1 every 5 seconds
-            const onlineCountEl = document.getElementById("onlineCount");
-            if (onlineCountEl) {
-                let count = 150;
-                onlineCountEl.textContent = count;
-                setInterval(() => {
-                    count++;
-                    onlineCountEl.textContent = count;
-                }, 5000);
-            }
+            const STORAGE_KEY_ONLINE = 'counter_online';
+            const STORAGE_KEY_REMAINING = 'counter_remaining';
+            const STORAGE_KEY_TIME = 'counter_startTime';
             
-            // Remaining spots: start at 49, decrement by 1 every 5 seconds
+            const onlineCountEl = document.getElementById("onlineCount");
             const remainingSpots1 = document.getElementById("remainingSpots");
             const remainingSpots2 = document.getElementById("remainingSpots2");
-            let remainingCount = 49;
             
+            // 获取或初始化在线人数
+            let onlineCount = parseInt(localStorage.getItem(STORAGE_KEY_ONLINE));
+            if (isNaN(onlineCount)) {
+                onlineCount = 150;
+                localStorage.setItem(STORAGE_KEY_ONLINE, onlineCount);
+            }
+            
+            // 获取或初始化剩余名额
+            let remainingCount = parseInt(localStorage.getItem(STORAGE_KEY_REMAINING));
+            if (isNaN(remainingCount)) {
+                remainingCount = 49;
+                localStorage.setItem(STORAGE_KEY_REMAINING, remainingCount);
+            }
+            
+            // 更新显示
+            if (onlineCountEl) onlineCountEl.textContent = onlineCount;
             if (remainingSpots1) remainingSpots1.textContent = remainingCount + "/50";
             if (remainingSpots2) remainingSpots2.textContent = remainingCount + "/50";
             
+            // 每5秒更新
             setInterval(() => {
-                remainingCount--;
-                if (remainingCount < 0) remainingCount = 0;
-                if (remainingSpots1) {
-                    remainingSpots1.textContent = remainingCount + "/50";
-                }
-                if (remainingSpots2) {
-                    remainingSpots2.textContent = remainingCount + "/50";
+                onlineCount++;
+                if (onlineCountEl) onlineCountEl.textContent = onlineCount;
+                localStorage.setItem(STORAGE_KEY_ONLINE, onlineCount);
+            }, 5000);
+            
+            setInterval(() => {
+                if (remainingCount > 0) {
+                    remainingCount--;
+                    if (remainingSpots1) remainingSpots1.textContent = remainingCount + "/50";
+                    if (remainingSpots2) remainingSpots2.textContent = remainingCount + "/50";
+                    localStorage.setItem(STORAGE_KEY_REMAINING, remainingCount);
                 }
             }, 5000);
         }
 
-        // Initialize when page loads
+        // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', initializeCounters);
     </script>
 </body>
